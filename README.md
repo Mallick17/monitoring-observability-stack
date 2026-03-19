@@ -1362,3 +1362,824 @@ Q5: Team DevOps expertise?
 - **Splunk Certification**: https://www.splunk.com/en_us/training.html
 - **Docker Hub**: https://hub.docker.com/r/splunk/splunk
 - **GitHub - Docker Splunk**: https://github.com/splunk/docker-splunk
+
+---
+
+---
+
+# Splunk: Practical Examples & Code Reference
+
+## Table of Contents
+1. [Quick Start Commands](#quick-start)
+2. [Common SPL Queries](#spl-queries)
+3. [Configuration Examples](#config-examples)
+4. [Docker Commands](#docker-commands)
+5. [Forwarder Setup](#forwarder-setup)
+6. [Real-World Use Cases](#real-world)
+
+---
+
+## Quick Start Commands {#quick-start}
+
+### Check Splunk Status
+```bash
+# Check if Splunk is running
+ps aux | grep splunk
+
+# Check version
+/opt/splunk/bin/splunk --version
+
+# View server health
+/opt/splunk/bin/splunk list licenses -auth admin:password
+
+# Check index status
+/opt/splunk/bin/splunk list indexes -auth admin:password
+```
+
+### CLI Operations
+```bash
+# Create index
+/opt/splunk/bin/splunk add index myindex -auth admin:password
+
+# Add forwarding server
+/opt/splunk/bin/splunk add forward-server indexer1:9997 -auth admin:password
+
+# Restart Splunk service
+/opt/splunk/bin/splunk restart
+
+# Stop Splunk
+/opt/splunk/bin/splunk stop
+
+# Show current config
+/opt/splunk/bin/splunk show config outputs -auth admin:password
+```
+
+### Web API Operations
+```bash
+# Get server info
+curl -k -u admin:password https://localhost:8089/services/server/info
+
+# List indexes via REST API
+curl -k -u admin:password https://localhost:8089/services/data/indexes
+
+# Create saved search
+curl -k -u admin:password -X POST \
+  https://localhost:8089/services/saved/searches \
+  -d "name=my_search&search=index%3Dmain"
+
+# Get search job results
+curl -k -u admin:password https://localhost:8089/services/search/jobs
+```
+
+---
+
+## Common SPL Queries {#spl-queries}
+
+### Basic Queries
+
+**Search All Events in Main Index**
+```spl
+index=main
+```
+
+**Search Specific Time Range**
+```spl
+index=main earliest=-24h@h latest=now
+```
+
+**Search with Multiple Conditions**
+```spl
+index=main sourcetype=nginx:access status=500 host=web-01
+```
+
+**Case-Insensitive Search**
+```spl
+index=main [search client_ip=192.168.1.*]
+```
+
+### Field Extraction & Transformation
+
+**Extract Fields on the Fly**
+```spl
+index=main
+| rex field=_raw "user=(?<username>\w+)"
+| rex field=_raw "action=(?<action>\w+)"
+```
+
+**Rename Fields**
+```spl
+index=main
+| rename host as hostname, source as log_source
+```
+
+**Keep Only Specific Fields**
+```spl
+index=main
+| fields host, user, status, response_time
+```
+
+**Lookup External Data**
+```spl
+index=main
+| lookup users.csv user_id OUTPUT user_name, department
+```
+
+### Aggregation & Statistics
+
+**Count Events by Host**
+```spl
+index=main
+| stats count by host
+```
+
+**Average Response Time**
+```spl
+index=main
+| stats avg(response_time) as avg_rt, max(response_time) as max_rt by host
+```
+
+**Multiple Aggregations**
+```spl
+index=main
+| stats count, avg(latency), max(latency), min(latency) by host, status
+```
+
+**Time-Based Aggregation**
+```spl
+index=main
+| timechart span=5m avg(response_time), count by host
+```
+
+**Top 10 Values**
+```spl
+index=main
+| top 10 user
+| rename count as User_Count, percent as Percentage
+```
+
+**Unique Values Count**
+```spl
+index=main
+| stats dc(user) as unique_users, count by host
+```
+
+### Filtering & Conditional Logic
+
+**Where Clause (Post-Search Filter)**
+```spl
+index=main
+| stats count by host, status
+| where status >= 400
+```
+
+**If/Then Logic**
+```spl
+index=main
+| stats count as event_count by host
+| eval severity=if(event_count > 1000, "CRITICAL", 
+                    if(event_count > 500, "HIGH", "MEDIUM"))
+```
+
+**Multiple Conditions**
+```spl
+index=main
+| eval priority=case(
+    status >= 500, "P1",
+    status >= 400, "P2",
+    status >= 300, "P3",
+    1=1, "P4"
+  )
+```
+
+### Joins & Set Operations
+
+**Inner Join on Field**
+```spl
+index=main | search status=200
+| join type=inner host [search index=main status=500]
+```
+
+**Append Results**
+```spl
+[search index=main status=200] 
+| append 
+[search index=main status=500]
+```
+
+**Set Difference**
+```spl
+[search index=main sourcetype=web status=200 | fields host]
+| diff
+[search index=main sourcetype=app status=500 | fields host]
+```
+
+### Transactions & Session Analysis
+
+**Group Related Events**
+```spl
+index=main
+| transaction user_id timeout=30m
+| stats avg(duration) as avg_session_duration by user_id
+```
+
+**Session Start Detection**
+```spl
+index=main
+| transaction user_id startswith=eval(action="login") endswith=eval(action="logout")
+| stats count as sessions, sum(duration) as total_time by user_id
+```
+
+### Time Series & Trending
+
+**Daily Trend**
+```spl
+index=main
+| timechart span=1d count as daily_events by status
+```
+
+**Hourly Comparison**
+```spl
+index=main
+| timechart span=1h count, avg(response_time) by host
+```
+
+**Percent Change**
+```spl
+index=main
+| timechart span=1h count as events
+| eval percent_change=round(((events-previous_events)/previous_events)*100, 2)
+```
+
+### Anomaly Detection
+
+**Standard Deviation-Based Alerting**
+```spl
+index=main
+| stats avg(latency) as avg_latency, stdev(latency) as stdev_latency
+| eval upper_bound=avg_latency+(2*stdev_latency)
+| eval lower_bound=avg_latency-(2*stdev_latency)
+| eval anomaly=if(latency > upper_bound OR latency < lower_bound, "YES", "NO")
+```
+
+**Predict Future Values**
+```spl
+index=main
+| timechart span=1h count
+| predict _time count future_timespan=24
+```
+
+### Security & Threat Detection
+
+**Failed Login Tracking**
+```spl
+index=security sourcetype=auth failed_login=true
+| stats count as failed_attempts by user, src_ip
+| where failed_attempts > 5
+| eval severity="HIGH"
+```
+
+**Lateral Movement Detection**
+```spl
+index=security sourcetype=windows:security EventCode=4625 OR EventCode=4624
+| transaction user_name, host maxspan=1h
+| where mvcount(host) > 3
+| eval suspicious="YES"
+```
+
+**Data Exfiltration Detection**
+```spl
+index=network sourcetype=netflow bytes_out > 1000000
+| stats sum(bytes_out) as total_bytes by src_ip, dst_ip
+| where total_bytes > 10000000
+| lookup malicious_ips.csv ip OUTPUT threat_level
+```
+
+---
+
+## Configuration Examples {#config-examples}
+
+### Inputs Configuration
+
+**Monitor Multiple Sources**
+```ini
+# /opt/splunk/etc/system/local/inputs.conf
+
+# Apache web server logs
+[monitor:///var/log/apache2/access.log]
+index = web_metrics
+sourcetype = apache:access
+source = /var/log/apache2/access.log
+NO_BINARY_CHECK = true
+
+# Application logs
+[monitor:///var/log/myapp/*.log]
+index = app_logs
+sourcetype = app:json
+source = /var/log/myapp
+recursive = true
+
+# System logs
+[tcpin://:514]
+connection_host = ip
+sourcetype = syslog
+index = system
+
+# Python script to collect metrics
+[script:///usr/local/bin/collect_metrics.py]
+interval = 60
+sourcetype = custom:metrics
+index = metrics
+source = script
+```
+
+### Outputs Configuration with Load Balancing
+
+```ini
+# /opt/splunk/etc/system/local/outputs.conf
+
+[tcpout]
+defaultGroup = indexers
+forwardedindex.filter.disable = true
+indexAndForward = false
+
+[tcpout:indexers]
+server = indexer1.prod.internal:9997, indexer2.prod.internal:9997, indexer3.prod.internal:9997
+loadBalanceSetting = persistentVolumeBased
+autoLBFrequency = 30
+autoLBVolume = 10485760
+autoLBFrequencyScalar = 60
+
+[tcpout:indexers]
+sslVerifyServerCert = true
+sslCertPath = /opt/splunk/etc/apps/ssl/client.pem
+sslPassword = $7$encrypted_password
+
+maxConnectionsPerIndexer = 4
+maxQueueSize = 512KB
+tcpSendBufSz = 4096KB
+```
+
+### Props Configuration for Parsing
+
+```ini
+# /opt/splunk/etc/system/local/props.conf
+
+# Apache Access Logs
+[apache:access]
+TRANSFORMS = parse_apache, enrich_ip_geolocation
+REPORT-fields = apache_fields
+LINE_BREAKER = (?m)^
+
+# JSON Logs
+[json_logs]
+AUTO_KV_JSON = true
+KV_MODE = json
+TIMESTAMP_FIELDS = timestamp, @timestamp
+LOOKUP-fields = enrichment_lookup
+
+# CSV Logs
+[csv_data]
+DELIMS = ","
+FIELDS = timestamp, user, action, status, message
+
+# Multiline Logs (Java Stack Traces)
+[java:stacktrace]
+SHOULD_LINEMERGE = true
+LINE_BREAKER = (^[a-zA-Z]|\s+at\s+)
+LEARN_SOURCETYPE = false
+
+# Custom Application
+[myapp:log]
+EXTRACT-method = method=(?<http_method>\w+)
+EXTRACT-status = response=(?<status>\d{3})
+EXTRACT-duration = duration=(?<response_time>\d+)ms
+```
+
+### Transforms Configuration
+
+```ini
+# /opt/splunk/etc/system/local/transforms.conf
+
+# Parse Apache access log
+[parse_apache]
+REGEX = (?P<client_ip>[\w\.]+)\s+-\s+\[(?P<timestamp>[^\]]*)\]\s+"(?P<method>\w+)\s+(?P<uri>[^\s]*)\s+(?P<protocol>[^"]*)"\s+(?P<status>\d+)\s+(?P<bytes>\d+)
+FORMAT = client_ip::$1 timestamp::$2 method::$3 uri::$4 protocol::$5 status::$6 bytes::$7
+
+# Geolocation enrichment
+[enrich_ip_geolocation]
+filename = geoip.csv
+min_matches = 1
+
+# Route errors to specific index
+[route_errors_to_security]
+REGEX = ERROR|CRITICAL
+DEST_KEY = _MetaData:Index
+FORMAT = security_alerts
+
+# Filter debug logs
+[filter_debug_logs]
+REGEX = DEBUG|TEST
+DEST_KEY = queue
+FORMAT = nullQueue
+```
+
+### Server Configuration for Clustering
+
+```ini
+# /opt/splunk/etc/system/local/server.conf
+
+# License
+[license]
+master_uri_ = https://license-master.prod.internal:8089
+connection_timeout = 20
+send_to_phonehome = true
+
+# General
+[general]
+pass4SymmKey = $7$YOUR_ENCRYPTED_KEY
+server_ui = default
+session_timeout = 1h
+
+# SSL Configuration
+[sslConfig]
+enableSSL = true
+sslVersions = tls1.2, tls1.3
+serverCert = /opt/splunk/etc/apps/ssl/server.pem
+requireClientCert = false
+sslPassword = $7$encrypted_password
+cipherSuite = ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384
+
+# Indexer Clustering
+[clustering]
+mode = peer
+master_uri = https://cluster-master.prod.internal:8089
+pass4SymmKey = $7$CLUSTER_KEY
+cxn_timeout = 30
+rep_cxn_timeout = 30
+replication_port = 8080
+heartbeat_timeout = 60
+replication_use_ssl = true
+
+# Search Head Clustering
+[shclustering]
+disabled = false
+pass4SymmKey = $7$SHC_KEY
+shcluster_label = prod_shc
+conf_deploy_fetch_url = https://deployment-server:8089
+server_uri = https://search-head-1:8089
+```
+
+---
+
+## Docker Commands {#docker-commands}
+
+### Standalone Container
+
+```bash
+# Pull latest image
+docker pull splunk/splunk:latest
+
+# Run single instance
+docker run -d \
+  --name splunk-single \
+  -p 8000:8000 \
+  -p 9997:9997 \
+  -e SPLUNK_START_ARGS='--accept-license' \
+  -e SPLUNK_PASSWORD='YourSecurePass123!' \
+  -e SPLUNK_GENERAL_TERMS='--accept-sgt-current-at-splunk-com' \
+  splunk/splunk:latest
+
+# Check logs
+docker logs -f splunk-single
+
+# Access container shell
+docker exec -it splunk-single /bin/bash
+
+# View Splunk logs inside container
+docker exec splunk-single tail -f /opt/splunk/var/log/splunk/splunkd.log
+```
+
+### Multi-Instance with Docker Compose
+
+```bash
+# Start cluster
+docker-compose up -d
+
+# View service status
+docker-compose ps
+
+# View logs
+docker-compose logs -f search-head
+
+# Scale indexers
+docker-compose up -d --scale indexer=5
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes
+docker-compose down -v
+```
+
+### Volume Management
+
+```bash
+# Create named volume
+docker volume create splunk-data
+
+# List volumes
+docker volume ls
+
+# Inspect volume
+docker volume inspect splunk-data
+
+# Backup volume
+docker run --rm \
+  -v splunk-data:/data \
+  -v $(pwd):/backup \
+  alpine tar czf /backup/splunk-backup.tar.gz /data
+
+# Restore from backup
+docker volume create splunk-data-restore
+
+docker run --rm \
+  -v splunk-data-restore:/data \
+  -v $(pwd):/backup \
+  alpine tar xzf /backup/splunk-backup.tar.gz -C /data --strip-components=1
+```
+
+### Network Configuration
+
+```bash
+# Create custom network
+docker network create splunk-network
+
+# Run containers on same network
+docker run -d \
+  --name indexer \
+  --network splunk-network \
+  -p 9997:9997 \
+  splunk/splunk:latest
+
+docker run -d \
+  --name search-head \
+  --network splunk-network \
+  -p 8000:8000 \
+  splunk/splunk:latest
+
+# Connect existing container
+docker network connect splunk-network splunk-single
+
+# Test connectivity
+docker exec indexer ping search-head
+```
+
+### Build Custom Image
+
+```dockerfile
+# Dockerfile
+FROM splunk/splunk:latest
+
+USER root
+
+# Install additional tools
+RUN apt-get update && \
+    apt-get install -y curl wget git && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy custom configs
+COPY config/inputs.conf /opt/splunk/etc/system/local/
+COPY config/props.conf /opt/splunk/etc/system/local/
+COPY scripts/ /opt/splunk/etc/apps/custom/
+
+USER splunk
+
+# Build image
+docker build -t my-splunk:custom .
+
+# Run custom image
+docker run -d \
+  --name splunk-custom \
+  -p 8000:8000 \
+  -e SPLUNK_PASSWORD='Pass123!' \
+  -e SPLUNK_START_ARGS='--accept-license' \
+  my-splunk:custom
+```
+
+---
+
+## Forwarder Setup {#forwarder-setup}
+
+### Universal Forwarder Installation
+
+**Linux**
+```bash
+# Download
+wget -O splunk-forwarder.tgz \
+  'https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=Linux&version=9.0.0&wget=true'
+
+# Extract
+tar xzf splunk-forwarder.tgz -C /opt
+
+# Create user
+useradd -m splunk
+
+# Set permissions
+chown -R splunk:splunk /opt/splunk*
+
+# Start forwarder
+/opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
+```
+
+**Windows**
+```powershell
+# Download MSI
+$url = "https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=windows&version=9.0.0&wget=true"
+Invoke-WebRequest -Uri $url -OutFile splunk-forwarder.msi
+
+# Install
+msiexec.exe /i splunk-forwarder.msi ACCEPT_TERMS=1 /qn
+
+# Start service
+Start-Service SplunkForwarder
+```
+
+### Forwarder Configuration
+
+**Basic inputs.conf**
+```ini
+[monitor:///var/log/app.log]
+index = main
+sourcetype = app:log
+source = /var/log/app.log
+```
+
+**outputs.conf for Load Balancing**
+```ini
+[tcpout]
+defaultGroup = indexers
+forwardedindex.filter.disable = true
+
+[tcpout:indexers]
+server = indexer1:9997, indexer2:9997, indexer3:9997
+loadBalanceSetting = persistentVolumeBased
+autoLBFrequency = 30
+```
+
+**Docker UF Deployment**
+```bash
+docker run -d \
+  --name splunk-uf \
+  -e SPLUNK_START_ARGS='--accept-license' \
+  -e SPLUNK_PASSWORD='Pass123!' \
+  -e SPLUNK_FORWARD_SERVER='indexer:9997' \
+  -e SPLUNK_ADD='unix' \
+  -v /var/log:/host/var/log:ro \
+  splunk/universalforwarder:latest
+```
+
+### Troubleshooting Forwarders
+
+```bash
+# Check forwarder status
+/opt/splunk/bin/splunk list forward-server -auth admin:password
+
+# View forwarder logs
+tail -f /opt/splunk/var/log/splunk/metrics.log
+
+# Test connectivity
+telnet indexer-ip 9997
+
+# Check queues
+/opt/splunk/bin/splunk list inputstatus -auth admin:password
+
+# Monitor forwarding
+/opt/splunk/bin/splunk list inputs -auth admin:password
+```
+
+---
+
+## Real-World Use Cases {#real-world}
+
+### Use Case 1: Web Application Monitoring
+
+**Setup**
+```bash
+# Install UF on web server
+/opt/splunkforwarder/bin/splunk add forward-server indexer:9997 \
+  -auth admin:password
+
+# Configure to monitor Nginx
+/opt/splunkforwarder/bin/splunk add monitor /var/log/nginx/ \
+  -index web -sourcetype nginx:access \
+  -auth admin:password
+```
+
+**Monitoring Query**
+```spl
+index=web sourcetype=nginx:access
+| timechart span=5m count by status
+| where status >= 400
+```
+
+### Use Case 2: Database Performance Monitoring
+
+**DBX Setup (Splunk DB Connect)**
+```ini
+[my_database]
+connection = mydb
+query = SELECT * FROM sys.dm_exec_requests
+sourcetype = mssql:perfmon
+index = db_metrics
+```
+
+**Monitoring Query**
+```spl
+index=db_metrics sourcetype=mssql:perfmon
+| stats avg(cpu_time) as avg_cpu, max(memory_usage) as peak_memory by session_id
+| where avg_cpu > 1000
+```
+
+### Use Case 3: Cloud Monitoring (AWS)
+
+**AWS Integration Setup**
+```bash
+# Install AWS Add-on
+cd /opt/splunk/etc/apps
+wget https://github.com/splunk/aws-cloudformation-templates/raw/master/addons/aws.tgz
+tar xzf aws.tgz
+
+# Configure AWS credentials
+# Edit: /opt/splunk/etc/apps/Splunk_TA_aws/local/aws_inputs.conf
+```
+
+**Configuration**
+```ini
+[aws-cloudwatch-logs]
+aws_account = default
+aws_region = us-east-1
+log_group_name = /aws/lambda/my-function
+interval = 300
+sourcetype = aws:cloudwatch
+```
+
+**Monitoring Query**
+```spl
+index=main sourcetype=aws:cloudwatch
+| stats count as errors by msg_type, log_stream
+| where errors > 10
+```
+
+### Use Case 4: Security Event Correlation
+
+**Data Collection**
+```ini
+[monitor:///var/log/auth.log]
+sourcetype = linux:auth
+index = security
+
+[tcpin://localhost:9514]
+sourcetype = windows:security
+index = security
+```
+
+**Alert Query**
+```spl
+index=security 
+| transaction src_ip maxspan=5m 
+| search eventtype=failed_login 
+| stats count as failed_attempts by src_ip 
+| where failed_attempts > 5
+| alert_name "Brute Force Detected"
+```
+
+---
+
+## Performance Tuning Commands
+
+```bash
+# Monitor current indexing rate
+/opt/splunk/bin/splunk show inputstatus
+
+# Check license usage
+/opt/splunk/bin/splunk show license-usage -auth admin:password
+
+# Optimize index
+/opt/splunk/bin/splunk optimize datamodel
+
+# Clear search cache
+/opt/splunk/bin/splunk clean cache
+
+# Monitor search load
+/opt/splunk/bin/splunk list jobs auth=admin:password
+```
+
+---
+
+## Useful Links
+
+- **Splunk Docs**: https://docs.splunk.com
+- **SPL Search Tutorial**: https://docs.splunk.com/Documentation/Splunk/latest/SearchTutorial/WelcometotheSearchTutorial
+- **Props & Transforms**: https://docs.splunk.com/Documentation/Splunk/latest/Admin/Propsconf
+- **Splunk Community**: https://community.splunk.com
+- **Docker Hub**: https://hub.docker.com/r/splunk/splunk
