@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snyk — Complete Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #0f1218;
+    --surface2: #161b24;
+    --border: #1e2530;
+    --snyk: #4c9be8;
+    --snyk2: #6cb8ff;
+    --green: #39d98a;
+    --yellow: #f5c542;
+    --red: #f26d6d;
+    --purple: #b57bee;
+    --orange: #f0914d;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--snyk); border-radius: 3px; }
+
+  /* LAYOUT */
+  .shell { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 0 0 2rem;
+  }
+
+  .logo-area {
+    padding: 1.5rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #1a2a3a, #0f1e2e);
+    border: 1px solid var(--snyk);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--snyk2);
+    letter-spacing: 1px;
+  }
+
+  .logo-badge span { color: var(--green); }
+
+  .sidebar-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--muted);
+    padding: 1rem 1.25rem 0.35rem;
+    text-transform: uppercase;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.82rem;
+    color: var(--muted);
+    border-left: 2px solid transparent;
+    font-family: var(--mono);
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--snyk2); border-left-color: var(--snyk); background: rgba(76,155,232,0.07); }
+  .nav-item .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* MAIN */
+  .main { flex: 1; overflow-y: auto; }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0a0c10 0%, #0d1520 40%, #091520 100%);
+    padding: 5rem 4rem 4rem;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(76,155,232,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero::after {
+    content: 'SNYK';
+    position: absolute;
+    right: 3rem; bottom: -1.5rem;
+    font-family: var(--sans);
+    font-size: 9rem;
+    font-weight: 800;
+    color: rgba(76,155,232,0.04);
+    letter-spacing: -5px;
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #fff 0%, var(--snyk2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 560px;
+    font-family: var(--mono);
+    font-weight: 300;
+  }
+
+  .hero-tags { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.5rem; }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    border: 1px solid;
+    font-weight: 500;
+  }
+  .tag.blue { border-color: var(--snyk); color: var(--snyk2); background: rgba(76,155,232,0.08); }
+  .tag.green { border-color: var(--green); color: var(--green); background: rgba(57,217,138,0.08); }
+  .tag.purple { border-color: var(--purple); color: var(--purple); background: rgba(181,123,238,0.08); }
+  .tag.orange { border-color: var(--orange); color: var(--orange); background: rgba(240,145,77,0.08); }
+
+  /* CONTENT */
+  .content { padding: 3rem 4rem; max-width: 1000px; }
+
+  .section { margin-bottom: 4rem; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--snyk);
+    background: rgba(76,155,232,0.1);
+    border: 1px solid var(--snyk);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .section h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--snyk2);
+    margin: 1.5rem 0 0.75rem;
+    font-family: var(--mono);
+  }
+
+  .section p { color: #94a3b8; margin-bottom: 0.75rem; font-size: 0.93rem; line-height: 1.8; }
+
+  /* CARDS */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1.25rem 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .card.blue::before { background: linear-gradient(90deg, var(--snyk), transparent); }
+  .card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+  .card.purple::before { background: linear-gradient(90deg, var(--purple), transparent); }
+  .card.orange::before { background: linear-gradient(90deg, var(--orange), transparent); }
+  .card.red::before { background: linear-gradient(90deg, var(--red), transparent); }
+
+  .card:hover { border-color: var(--snyk); transform: translateY(-2px); }
+
+  .card-icon { font-size: 1.5rem; margin-bottom: 0.6rem; }
+  .card h4 { font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 0.4rem; font-family: var(--mono); }
+  .card p { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: #080b0f;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 1.25rem 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--snyk);
+    text-transform: uppercase;
+  }
+
+  .code-dots { display: flex; gap: 5px; }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-dot.r { background: #f26d6d; }
+  .code-dot.y { background: #f5c542; }
+  .code-dot.g { background: #39d98a; }
+
+  .code-body {
+    padding: 1.25rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.9;
+    overflow-x: auto;
+    color: #abb2bf;
+    white-space: pre;
+  }
+
+  .c-cmd { color: #61afef; }
+  .c-flag { color: #c678dd; }
+  .c-val { color: #98c379; }
+  .c-comment { color: #5c6370; font-style: italic; }
+  .c-key { color: #e06c75; }
+  .c-str { color: #98c379; }
+  .c-num { color: #d19a66; }
+  .c-kw { color: #c678dd; }
+  .c-good { color: var(--green); }
+  .c-warn { color: var(--yellow); }
+  .c-bad { color: var(--red); }
+
+  /* PIPELINE DIAGRAM */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .pipe-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .pipe-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text);
+    text-align: center;
+    min-width: 90px;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .pipe-box:hover { border-color: var(--snyk); color: var(--snyk2); }
+  .pipe-box.snyk { border-color: var(--snyk); color: var(--snyk2); background: rgba(76,155,232,0.08); }
+
+  .pipe-label { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); }
+  .pipe-arrow { color: var(--muted); font-size: 1.2rem; padding: 0 0.3rem; }
+
+  /* SEVERITY TABLE */
+  .table-wrap { overflow-x: auto; margin: 1.25rem 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+  }
+
+  th {
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0.7rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: #94a3b8;
+    vertical-align: top;
+  }
+
+  tr:hover td { background: var(--surface); }
+
+  .sev {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .sev.C { background: rgba(242,109,109,0.15); color: #f26d6d; border: 1px solid rgba(242,109,109,0.3); }
+  .sev.H { background: rgba(240,145,77,0.15); color: #f0914d; border: 1px solid rgba(240,145,77,0.3); }
+  .sev.M { background: rgba(245,197,66,0.15); color: #f5c542; border: 1px solid rgba(245,197,66,0.3); }
+  .sev.L { background: rgba(57,217,138,0.15); color: #39d98a; border: 1px solid rgba(57,217,138,0.3); }
+
+  /* TABS */
+  .tabs { margin: 1.5rem 0; }
+
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.6rem 1.1rem;
+    cursor: pointer;
+    color: var(--muted);
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--snyk2); border-bottom-color: var(--snyk); }
+
+  .tab-panel { display: none; padding-top: 0.5rem; }
+  .tab-panel.active { display: block; }
+
+  /* ALERT BOXES */
+  .alert {
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    border: 1px solid;
+  }
+
+  .alert.info { background: rgba(76,155,232,0.07); border-color: rgba(76,155,232,0.3); color: #7ec8f7; }
+  .alert.warn { background: rgba(245,197,66,0.07); border-color: rgba(245,197,66,0.3); color: #f5c542; }
+  .alert.tip { background: rgba(57,217,138,0.07); border-color: rgba(57,217,138,0.3); color: #39d98a; }
+  .alert.danger { background: rgba(242,109,109,0.07); border-color: rgba(242,109,109,0.3); color: #f26d6d; }
+  .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.05rem; }
+  .alert-body { line-height: 1.6; font-family: var(--mono); font-size: 0.8rem; }
+
+  /* COMPARISON GRID */
+  .compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.25rem 0; }
+
+  .compare-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .compare-head {
+    padding: 0.75rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .compare-body { padding: 0.75rem 1rem; }
+  .compare-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 0.72rem; }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-row span:first-child { color: var(--muted); }
+  .compare-row span:last-child { color: var(--text); }
+
+  /* BADGE */
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    letter-spacing: 1px;
+  }
+  .badge.free { background: rgba(57,217,138,0.15); color: var(--green); }
+  .badge.paid { background: rgba(181,123,238,0.15); color: var(--purple); }
+  .badge.team { background: rgba(76,155,232,0.15); color: var(--snyk2); }
+
+  /* STEP LIST */
+  .steps { counter-reset: step; margin: 1rem 0; }
+  .step {
+    counter-increment: step;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(76,155,232,0.15);
+    border: 1px solid var(--snyk);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--snyk2);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .step-content h4 { font-family: var(--mono); font-size: 0.85rem; color: var(--text); margin-bottom: 0.3rem; }
+  .step-content p { font-size: 0.82rem; color: var(--muted); margin: 0; }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .hero { padding: 2.5rem 1.5rem; }
+    .hero h1 { font-size: 2rem; }
+    .content { padding: 2rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="logo-area">
+      <div class="logo-badge">⬡ SNY<span>K</span></div>
+    </div>
+
+    <div class="sidebar-label">Foundations</div>
+    <div class="nav-item active" onclick="scrollTo('what')"><span class="dot"></span>What is Snyk?</div>
+    <div class="nav-item" onclick="scrollTo('products')"><span class="dot"></span>Product Suite</div>
+    <div class="nav-item" onclick="scrollTo('how')"><span class="dot"></span>How Snyk Works</div>
+    <div class="nav-item" onclick="scrollTo('severity')"><span class="dot"></span>Severity & CVSS</div>
+
+    <div class="sidebar-label">Installation</div>
+    <div class="nav-item" onclick="scrollTo('install')"><span class="dot"></span>CLI Setup</div>
+    <div class="nav-item" onclick="scrollTo('auth')"><span class="dot"></span>Authentication</div>
+    <div class="nav-item" onclick="scrollTo('first-scan')"><span class="dot"></span>First Scan</div>
+
+    <div class="sidebar-label">Environments</div>
+    <div class="nav-item" onclick="scrollTo('docker')"><span class="dot"></span>Docker / Containers</div>
+    <div class="nav-item" onclick="scrollTo('codebuild')"><span class="dot"></span>AWS CodeBuild</div>
+    <div class="nav-item" onclick="scrollTo('gitlab')"><span class="dot"></span>GitLab CI/CD</div>
+    <div class="nav-item" onclick="scrollTo('github')"><span class="dot"></span>GitHub Actions</div>
+    <div class="nav-item" onclick="scrollTo('jenkins')"><span class="dot"></span>Jenkins</div>
+    <div class="nav-item" onclick="scrollTo('k8s')"><span class="dot"></span>Kubernetes</div>
+
+    <div class="sidebar-label">Configuration</div>
+    <div class="nav-item" onclick="scrollTo('config')"><span class="dot"></span>snyk.policy & .snykrc</div>
+    <div class="nav-item" onclick="scrollTo('ignore')"><span class="dot"></span>Ignore Rules</div>
+    <div class="nav-item" onclick="scrollTo('flags')"><span class="dot"></span>CLI Flags Reference</div>
+
+    <div class="sidebar-label">Expert Topics</div>
+    <div class="nav-item" onclick="scrollTo('api')"><span class="dot"></span>Snyk API</div>
+    <div class="nav-item" onclick="scrollTo('iac')"><span class="dot"></span>IaC Scanning</div>
+    <div class="nav-item" onclick="scrollTo('pr-checks')"><span class="dot"></span>PR Checks</div>
+    <div class="nav-item" onclick="scrollTo('best')"><span class="dot"></span>Best Practices</div>
+    <div class="nav-item" onclick="scrollTo('compare')"><span class="dot"></span>Tool Comparison</div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-eyebrow">// Beginner → Expert Complete Reference</div>
+      <h1>Master Snyk<br>Security Scanning</h1>
+      <p>Everything you need to understand, configure, and run Snyk across every environment — from local CLI to enterprise CI/CD pipelines.</p>
+      <div class="hero-tags">
+        <span class="tag blue">SCA</span>
+        <span class="tag green">SAST</span>
+        <span class="tag purple">Container</span>
+        <span class="tag orange">IaC</span>
+        <span class="tag blue">DevSecOps</span>
+        <span class="tag green">Open Source</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════════════════ SECTION 1: WHAT IS SNYK ══════════════════════ -->
+      <div class="section" id="what">
+        <div class="section-header">
+          <span class="section-num">01</span>
+          <h2>What is Snyk?</h2>
+        </div>
+
+        <p>Snyk (pronounced "sneak") is a <strong>developer-first security platform</strong> that automatically finds and fixes vulnerabilities in your open source dependencies, container images, Infrastructure as Code, and application code. It integrates directly into development workflows — IDEs, SCM, CI/CD — rather than sitting outside as a bolt-on tool.</p>
+
+        <div class="alert info">
+          <span class="alert-icon">ℹ</span>
+          <div class="alert-body">Snyk's philosophy: <strong>shift security left</strong> — catch vulnerabilities at development time, not in production. Developers own the fix, not a separate security team.</div>
+        </div>
+
+        <h3>// Why Snyk exists</h3>
+        <p>Modern apps are ~80% open source code. Each dependency you pull in (and its transitive dependencies) can carry known CVEs. Without automated scanning, these slip into production undetected. Snyk automates that detection and surfaces actionable remediation paths (upgrade to version X, apply patch Y).</p>
+
+        <div class="card-grid">
+          <div class="card blue">
+            <div class="card-icon">📦</div>
+            <h4>Open Source (SCA)</h4>
+            <p>Scans package manifests (npm, pip, Maven, Go modules, etc.) for vulnerable dependencies.</p>
+          </div>
+          <div class="card green">
+            <div class="card-icon">💻</div>
+            <h4>Code (SAST)</h4>
+            <p>Static analysis of your own code for security bugs — SQL injection, XSS, hardcoded secrets, etc.</p>
+          </div>
+          <div class="card purple">
+            <div class="card-icon">🐳</div>
+            <h4>Container</h4>
+            <p>Scans Docker images and base OS layers for CVEs across Alpine, Debian, RHEL, Ubuntu.</p>
+          </div>
+          <div class="card orange">
+            <div class="card-icon">☁️</div>
+            <h4>IaC</h4>
+            <p>Finds misconfigurations in Terraform, Helm, Kubernetes YAML, CloudFormation, ARM templates.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 2: HOW IT WORKS ══════════════════════ -->
+      <div class="section" id="how">
+        <div class="section-header">
+          <span class="section-num">02</span>
+          <h2>How Snyk Works — Internals</h2>
+        </div>
+
+        <h3>// The scan pipeline</h3>
+        <p>When you run <code style="color:var(--snyk2);font-family:var(--mono)">snyk test</code>, here's exactly what happens under the hood:</p>
+
+        <div class="pipeline">
+          <div class="pipe-step">
+            <div class="pipe-box">Detect<br>Manifest</div>
+            <div class="pipe-label">package.json<br>pom.xml etc</div>
+          </div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step">
+            <div class="pipe-box">Build<br>Dep Tree</div>
+            <div class="pipe-label">direct +<br>transitive</div>
+          </div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step">
+            <div class="pipe-box snyk">Send to<br>Snyk API</div>
+            <div class="pipe-label">encrypted<br>dep list</div>
+          </div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step">
+            <div class="pipe-box">Match<br>VulnDB</div>
+            <div class="pipe-label">CVE + Snyk<br>advisories</div>
+          </div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step">
+            <div class="pipe-box">Return<br>Results</div>
+            <div class="pipe-label">with fix<br>paths</div>
+          </div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step">
+            <div class="pipe-box">Exit Code<br>0 / 1</div>
+            <div class="pipe-label">pass / fail<br>pipeline</div>
+          </div>
+        </div>
+
+        <h3>// Dependency resolution per ecosystem</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Ecosystem</th><th>Manifest Files</th><th>Resolution Strategy</th><th>Transitive Deps</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Node.js</td><td>package.json, package-lock.json, yarn.lock</td><td>Lock file preferred, fallback to npm/yarn resolve</td><td>✅ Full</td></tr>
+              <tr><td>Python</td><td>requirements.txt, Pipfile, pyproject.toml</td><td>pip resolution + virtual env</td><td>✅ Full</td></tr>
+              <tr><td>Java</td><td>pom.xml, build.gradle</td><td>Maven/Gradle build required locally</td><td>✅ Full</td></tr>
+              <tr><td>Go</td><td>go.mod, go.sum</td><td>Module graph from go list</td><td>✅ Full</td></tr>
+              <tr><td>Ruby</td><td>Gemfile.lock</td><td>Lock file parse</td><td>✅ Full</td></tr>
+              <tr><td>.NET</td><td>*.csproj, packages.config</td><td>NuGet resolution</td><td>✅ Full</td></tr>
+              <tr><td>PHP</td><td>composer.lock</td><td>Lock file parse</td><td>✅ Full</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert warn">
+          <span class="alert-icon">⚠</span>
+          <div class="alert-body">For Java/Gradle, Snyk needs a <strong>build step</strong> run first (<code>./gradlew dependencies</code>) or the <code>--all-sub-projects</code> flag. For Python, activate your virtualenv before scanning.</div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 3: SEVERITY ══════════════════════ -->
+      <div class="section" id="severity">
+        <div class="section-header">
+          <span class="section-num">03</span>
+          <h2>Severity Levels & CVSS</h2>
+        </div>
+
+        <p>Snyk uses the <strong>CVSS v3.1</strong> scoring system, augmented with its own exploit intelligence (actual exploit availability, ease of exploitation in real environments).</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Level</th><th>CVSS Score</th><th>Snyk Action</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><span class="sev C">CRITICAL</span></td><td>9.0 – 10.0</td><td>Block pipeline immediately</td><td>RCE via log4shell (CVE-2021-44228)</td></tr>
+              <tr><td><span class="sev H">HIGH</span></td><td>7.0 – 8.9</td><td>Block or alert depending on policy</td><td>Prototype pollution with code exec</td></tr>
+              <tr><td><span class="sev M">MEDIUM</span></td><td>4.0 – 6.9</td><td>Warn, create ticket</td><td>ReDoS, SSRF without auth bypass</td></tr>
+              <tr><td><span class="sev L">LOW</span></td><td>0.1 – 3.9</td><td>Track, batch-fix</td><td>Info disclosure, timing attacks</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert tip">
+          <span class="alert-icon">💡</span>
+          <div class="alert-body">Use <code>--severity-threshold=high</code> to only fail builds on HIGH+ findings. This avoids alert fatigue from LOW/MEDIUM noise while still catching what matters.</div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 4: INSTALL ══════════════════════ -->
+      <div class="section" id="install">
+        <div class="section-header">
+          <span class="section-num">04</span>
+          <h2>CLI Installation</h2>
+        </div>
+
+        <div class="tabs">
+          <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab(this,'install','npm')">npm</button>
+            <button class="tab-btn" onclick="switchTab(this,'install','brew')">Homebrew</button>
+            <button class="tab-btn" onclick="switchTab(this,'install','binary')">Binary</button>
+            <button class="tab-btn" onclick="switchTab(this,'install','docker-cli')">Docker</button>
+          </div>
+
+          <div class="tab-panel active" id="install-npm">
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH</span></div>
+              <div class="code-body"><span class="c-comment"># Install globally via npm (requires Node 18+)</span>
+<span class="c-cmd">npm install</span> <span class="c-flag">-g</span> <span class="c-val">snyk</span>
+
+<span class="c-comment"># Verify installation</span>
+<span class="c-cmd">snyk</span> <span class="c-flag">--version</span>
+<span class="c-comment"># → 1.1291.0 (or latest)</span>
+
+<span class="c-comment"># Keep it updated</span>
+<span class="c-cmd">npm update</span> <span class="c-flag">-g</span> <span class="c-val">snyk</span></div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="install-brew">
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH</span></div>
+              <div class="code-body"><span class="c-comment"># macOS / Linux via Homebrew</span>
+<span class="c-cmd">brew tap</span> <span class="c-val">snyk/tap</span>
+<span class="c-cmd">brew install</span> <span class="c-val">snyk</span>
+
+<span class="c-comment"># Update later</span>
+<span class="c-cmd">brew upgrade</span> <span class="c-val">snyk</span></div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="install-binary">
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH</span></div>
+              <div class="code-body"><span class="c-comment"># Linux x64 — download standalone binary</span>
+<span class="c-cmd">curl</span> <span class="c-flag">-Lo</span> <span class="c-val">snyk</span> https://static.snyk.io/cli/latest/snyk-linux
+<span class="c-cmd">chmod</span> <span class="c-flag">+x</span> <span class="c-val">snyk</span>
+<span class="c-cmd">mv</span> <span class="c-val">snyk</span> /usr/local/bin/
+
+<span class="c-comment"># macOS arm64</span>
+<span class="c-cmd">curl</span> <span class="c-flag">-Lo</span> <span class="c-val">snyk</span> https://static.snyk.io/cli/latest/snyk-macos-arm64
+<span class="c-cmd">chmod</span> <span class="c-flag">+x</span> <span class="c-val">snyk</span>
+<span class="c-cmd">mv</span> <span class="c-val">snyk</span> /usr/local/bin/
+
+<span class="c-comment"># Windows — PowerShell</span>
+<span class="c-cmd">Invoke-WebRequest</span> <span class="c-flag">-Uri</span> <span class="c-val">https://static.snyk.io/cli/latest/snyk-win.exe</span> <span class="c-flag">-OutFile</span> snyk.exe</div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="install-docker-cli">
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH</span></div>
+              <div class="code-body"><span class="c-comment"># Run Snyk CLI via Docker (no install needed)</span>
+<span class="c-cmd">docker run</span> <span class="c-flag">--rm</span> <span class="c-flag">-it</span> \
+  <span class="c-flag">-e</span> <span class="c-key">SNYK_TOKEN</span>=<span class="c-val">$SNYK_TOKEN</span> \
+  <span class="c-flag">-v</span> <span class="c-val">"$(pwd):/project"</span> \
+  snyk/snyk:linux <span class="c-val">snyk test</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 5: AUTH ══════════════════════ -->
+      <div class="section" id="auth">
+        <div class="section-header">
+          <span class="section-num">05</span>
+          <h2>Authentication</h2>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4>Interactive login (local dev)</h4>
+              <p>Opens browser OAuth flow and saves token to ~/.config/configstore/snyk.json</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4>Token-based (CI/CD)</h4>
+              <p>Set SNYK_TOKEN env var — never hardcode the token in config files.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h4>Service accounts (Enterprise)</h4>
+              <p>Create dedicated service account tokens in Snyk Org Settings for programmatic use.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH</span></div>
+          <div class="code-body"><span class="c-comment"># Interactive (local machine)</span>
+<span class="c-cmd">snyk auth</span>
+
+<span class="c-comment"># CI/CD — pass token via environment variable</span>
+<span class="c-key">export</span> <span class="c-val">SNYK_TOKEN</span>=<span class="c-str">"your-api-token-here"</span>
+
+<span class="c-comment"># OR authenticate non-interactively using the token directly</span>
+<span class="c-cmd">snyk auth</span> <span class="c-val">$SNYK_TOKEN</span>
+
+<span class="c-comment"># Verify who you're authenticated as</span>
+<span class="c-cmd">snyk whoami</span></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 6: FIRST SCAN ══════════════════════ -->
+      <div class="section" id="first-scan">
+        <div class="section-header">
+          <span class="section-num">06</span>
+          <h2>Your First Scan</h2>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH — Core Commands</span></div>
+          <div class="code-body"><span class="c-comment"># ── OPEN SOURCE SCAN ──────────────────────────────────────</span>
+<span class="c-cmd">snyk test</span>                          <span class="c-comment"># scan current dir</span>
+<span class="c-cmd">snyk test</span> <span class="c-flag">--all-projects</span>            <span class="c-comment"># scan all sub-projects</span>
+<span class="c-cmd">snyk test</span> <span class="c-flag">--severity-threshold=high</span> <span class="c-comment"># only fail on HIGH+</span>
+<span class="c-cmd">snyk test</span> <span class="c-flag">--json</span>                    <span class="c-comment"># machine-readable output</span>
+<span class="c-cmd">snyk test</span> <span class="c-flag">--sarif</span>                   <span class="c-comment"># SARIF format for GHAS</span>
+
+<span class="c-comment"># ── MONITOR (continuous tracking) ─────────────────────────</span>
+<span class="c-cmd">snyk monitor</span>                        <span class="c-comment"># upload snapshot to dashboard</span>
+<span class="c-cmd">snyk monitor</span> <span class="c-flag">--project-name=</span><span class="c-val">my-app</span>  <span class="c-comment"># name the project</span>
+
+<span class="c-comment"># ── CODE SCAN (SAST) ──────────────────────────────────────</span>
+<span class="c-cmd">snyk code test</span>
+<span class="c-cmd">snyk code test</span> <span class="c-flag">--severity-threshold=medium</span>
+
+<span class="c-comment"># ── AUTO-FIX ──────────────────────────────────────────────</span>
+<span class="c-cmd">snyk fix</span>                            <span class="c-comment"># auto-upgrade vulnerable deps</span>
+
+<span class="c-comment"># ── IaC SCAN ──────────────────────────────────────────────</span>
+<span class="c-cmd">snyk iac test</span>                       <span class="c-comment"># scan all IaC files in dir</span>
+<span class="c-cmd">snyk iac test</span> terraform/            <span class="c-comment"># specific directory</span></div>
+        </div>
+
+        <h3>// Reading the output</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">OUTPUT EXAMPLE</span></div>
+          <div class="code-body"><span class="c-good">✔ Tested 847 dependencies for known issues</span>
+
+<span class="c-bad">✗ 3 vulnerabilities found (1 critical, 2 high)</span>
+
+  <span class="c-bad">✗ [Critical] Prototype Pollution</span>
+    <span class="c-comment">Package:    lodash</span>
+    <span class="c-comment">Version:    4.17.15</span>
+    <span class="c-comment">Fix:        Upgrade to lodash@4.17.21</span>
+    <span class="c-comment">CVE:        CVE-2020-8203</span>
+    <span class="c-comment">CVSS Score: 9.8</span>
+    <span class="c-comment">Introduced: project > express > lodash</span>
+    <span class="c-comment">Info:       https://snyk.io/vuln/SNYK-JS-LODASH-567746</span>
+
+<span class="c-comment">Run `snyk fix` to apply the recommended fixes.</span>
+<span class="c-comment">Run `snyk monitor` to track this project on snyk.io</span>
+
+<span class="c-bad">✗ 1 critical severity vulnerability, fix available</span></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 7: DOCKER ══════════════════════ -->
+      <div class="section" id="docker">
+        <div class="section-header">
+          <span class="section-num">07</span>
+          <h2>Dockerized Scanning</h2>
+        </div>
+
+        <p>Snyk supports two modes for container security: scanning Docker <strong>images for OS + app layer CVEs</strong>, and running the <strong>Snyk CLI itself inside a container</strong> for clean CI environments.</p>
+
+        <h3>// Scanning a Docker image</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH</span></div>
+          <div class="code-body"><span class="c-comment"># Pull and scan a public image</span>
+<span class="c-cmd">snyk container test</span> <span class="c-val">nginx:latest</span>
+
+<span class="c-comment"># Scan your own built image</span>
+<span class="c-cmd">docker build</span> <span class="c-flag">-t</span> <span class="c-val">myapp:latest</span> .
+<span class="c-cmd">snyk container test</span> <span class="c-val">myapp:latest</span> \
+  <span class="c-flag">--file=Dockerfile</span> \          <span class="c-comment"># include Dockerfile for better context</span>
+  <span class="c-flag">--severity-threshold=high</span> \
+  <span class="c-flag">--exclude-base-image-vulns</span>   <span class="c-comment"># only app-layer vulns, not OS base</span>
+
+<span class="c-comment"># Monitor container in Snyk dashboard</span>
+<span class="c-cmd">snyk container monitor</span> <span class="c-val">myapp:latest</span> <span class="c-flag">--project-name=myapp-prod</span>
+
+<span class="c-comment"># Output as JSON for parsing</span>
+<span class="c-cmd">snyk container test</span> <span class="c-val">myapp:latest</span> <span class="c-flag">--json</span> <span class="c-flag">&gt;</span> container-results.json</div>
+        </div>
+
+        <h3>// Snyk in a multi-stage Dockerfile</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">DOCKERFILE</span></div>
+          <div class="code-body"><span class="c-comment"># Stage 1: Build</span>
+<span class="c-kw">FROM</span> <span class="c-val">node:20-alpine</span> AS builder
+<span class="c-kw">WORKDIR</span> /app
+<span class="c-kw">COPY</span> package*.json ./
+<span class="c-kw">RUN</span> npm ci --production
+<span class="c-kw">COPY</span> . .
+
+<span class="c-comment"># Stage 2: Security scan (runs snyk, exits non-zero if vulns found)</span>
+<span class="c-kw">FROM</span> <span class="c-val">snyk/snyk:node</span> AS security-check
+<span class="c-kw">WORKDIR</span> /app
+<span class="c-kw">COPY</span> --from=builder /app /app
+<span class="c-kw">ARG</span> SNYK_TOKEN
+<span class="c-kw">ENV</span> SNYK_TOKEN=$SNYK_TOKEN
+<span class="c-comment"># Fails build if critical vulns found</span>
+<span class="c-kw">RUN</span> snyk test --severity-threshold=critical || true
+
+<span class="c-comment"># Stage 3: Production image</span>
+<span class="c-kw">FROM</span> <span class="c-val">node:20-alpine</span> AS production
+<span class="c-kw">WORKDIR</span> /app
+<span class="c-kw">COPY</span> --from=builder /app /app
+<span class="c-kw">EXPOSE</span> 3000
+<span class="c-kw">CMD</span> ["node", "server.js"]</div>
+        </div>
+
+        <h3>// docker-compose integration</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">DOCKER-COMPOSE.YML</span></div>
+          <div class="code-body"><span class="c-key">version</span>: <span class="c-str">'3.8'</span>
+<span class="c-key">services</span>:
+  <span class="c-key">snyk-scan</span>:
+    <span class="c-key">image</span>: <span class="c-val">snyk/snyk:linux</span>
+    <span class="c-key">volumes</span>:
+      - <span class="c-str">./:/project</span>
+    <span class="c-key">working_dir</span>: <span class="c-str">/project</span>
+    <span class="c-key">environment</span>:
+      - <span class="c-val">SNYK_TOKEN=${SNYK_TOKEN}</span>
+    <span class="c-key">command</span>: <span class="c-str">snyk test --severity-threshold=high</span>
+    <span class="c-key">profiles</span>: [security]  <span class="c-comment"># run: docker compose --profile security up</span></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 8: CODEBUILD ══════════════════════ -->
+      <div class="section" id="codebuild">
+        <div class="section-header">
+          <span class="section-num">08</span>
+          <h2>AWS CodeBuild Integration</h2>
+        </div>
+
+        <p>AWS CodeBuild is the most common Snyk target for teams on AWS. The token is stored in <strong>AWS Systems Manager Parameter Store</strong> (or Secrets Manager) and injected as an env var.</p>
+
+        <h3>// Step 1 — Store token in Parameter Store</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">AWS CLI</span></div>
+          <div class="code-body"><span class="c-cmd">aws ssm put-parameter</span> \
+  <span class="c-flag">--name</span> <span class="c-str">"/cicd/snyk-token"</span> \
+  <span class="c-flag">--value</span> <span class="c-str">"your-snyk-api-token"</span> \
+  <span class="c-flag">--type</span> <span class="c-val">SecureString</span> \
+  <span class="c-flag">--region</span> <span class="c-val">ap-south-1</span></div>
+        </div>
+
+        <h3>// Step 2 — buildspec.yml (full example)</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BUILDSPEC.YML</span></div>
+          <div class="code-body"><span class="c-key">version</span>: <span class="c-num">0.2</span>
+
+<span class="c-key">env</span>:
+  <span class="c-key">parameter-store</span>:
+    <span class="c-val">SNYK_TOKEN</span>: <span class="c-str">/cicd/snyk-token</span>
+
+<span class="c-key">phases</span>:
+  <span class="c-key">install</span>:
+    <span class="c-key">runtime-versions</span>:
+      <span class="c-val">nodejs</span>: <span class="c-num">20</span>
+    <span class="c-key">commands</span>:
+      - <span class="c-str">npm install -g snyk</span>
+      - <span class="c-str">npm ci</span>
+
+  <span class="c-key">pre_build</span>:
+    <span class="c-key">commands</span>:
+      - <span class="c-str">echo "Running Snyk security scan..."</span>
+      <span class="c-comment"># Fail build on HIGH+ vulnerabilities</span>
+      - <span class="c-str">snyk test --severity-threshold=high --json > snyk-report.json || BUILD_FAILED=true</span>
+      <span class="c-comment"># Upload snapshot for continuous monitoring</span>
+      - <span class="c-str">snyk monitor --project-name=my-app-${CODEBUILD_RESOLVED_SOURCE_VERSION}</span>
+      - <span class="c-str">if [ "$BUILD_FAILED" = "true" ]; then echo "Snyk found HIGH+ vulns"; exit 1; fi</span>
+
+  <span class="c-key">build</span>:
+    <span class="c-key">commands</span>:
+      - <span class="c-str">npm run build</span>
+      <span class="c-comment"># Container scan after Docker build</span>
+      - <span class="c-str">docker build -t myapp:$CODEBUILD_RESOLVED_SOURCE_VERSION .</span>
+      - <span class="c-str">snyk container test myapp:$CODEBUILD_RESOLVED_SOURCE_VERSION --severity-threshold=high</span>
+
+  <span class="c-key">post_build</span>:
+    <span class="c-key">commands</span>:
+      - <span class="c-str">echo "Security scan complete"</span>
+
+<span class="c-key">reports</span>:
+  <span class="c-key">snyk-vulnerability-report</span>:
+    <span class="c-key">files</span>:
+      - <span class="c-str">snyk-report.json</span>
+    <span class="c-key">file-format</span>: <span class="c-val">CUCUMBERJSON</span>
+
+<span class="c-key">artifacts</span>:
+  <span class="c-key">files</span>:
+    - <span class="c-str">snyk-report.json</span></div>
+        </div>
+
+        <div class="alert info">
+          <span class="alert-icon">ℹ</span>
+          <div class="alert-body">Add <strong>ssm:GetParameter</strong> permission to the CodeBuild IAM role so it can read the Snyk token from Parameter Store.</div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 9: GITLAB ══════════════════════ -->
+      <div class="section" id="gitlab">
+        <div class="section-header">
+          <span class="section-num">09</span>
+          <h2>GitLab CI/CD Integration</h2>
+        </div>
+
+        <h3>// Store the token</h3>
+        <p>Go to <strong>Settings → CI/CD → Variables</strong> → Add variable <code style="color:var(--snyk2);font-family:var(--mono)">SNYK_TOKEN</code> (masked, protected).</p>
+
+        <h3>// .gitlab-ci.yml (complete)</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">.GITLAB-CI.YML</span></div>
+          <div class="code-body"><span class="c-key">stages</span>:
+  - security
+  - build
+  - deploy
+
+<span class="c-comment"># ── INCLUDE SNYK TEMPLATES ─────────────────────────────────</span>
+<span class="c-key">include</span>:
+  - <span class="c-key">template</span>: <span class="c-val">Security/SAST.gitlab-ci.yml</span>   <span class="c-comment"># optional GitLab SAST</span>
+
+<span class="c-comment"># ── SNYK OPEN SOURCE SCAN ──────────────────────────────────</span>
+<span class="c-key">snyk:open-source</span>:
+  <span class="c-key">stage</span>: <span class="c-val">security</span>
+  <span class="c-key">image</span>: <span class="c-val">snyk/snyk:node</span>
+  <span class="c-key">variables</span>:
+    <span class="c-val">SNYK_TOKEN</span>: <span class="c-str">$SNYK_TOKEN</span>
+  <span class="c-key">script</span>:
+    - <span class="c-str">snyk test --severity-threshold=high --json > gl-sast-report.json</span>
+    - <span class="c-str">snyk monitor --project-name=$CI_PROJECT_NAME</span>
+  <span class="c-key">artifacts</span>:
+    <span class="c-key">reports</span>:
+      <span class="c-key">sast</span>: <span class="c-val">gl-sast-report.json</span>   <span class="c-comment"># shows in GitLab Security Dashboard</span>
+    <span class="c-key">when</span>: <span class="c-val">always</span>
+  <span class="c-key">allow_failure</span>: <span class="c-val">false</span>  <span class="c-comment"># block merge if vulns found</span>
+  <span class="c-key">only</span>:
+    - <span class="c-val">merge_requests</span>
+    - <span class="c-val">main</span>
+    - <span class="c-val">develop</span>
+
+<span class="c-comment"># ── SNYK CODE SCAN (SAST) ──────────────────────────────────</span>
+<span class="c-key">snyk:code</span>:
+  <span class="c-key">stage</span>: <span class="c-val">security</span>
+  <span class="c-key">image</span>: <span class="c-val">snyk/snyk:node</span>
+  <span class="c-key">script</span>:
+    - <span class="c-str">snyk code test --severity-threshold=medium</span>
+  <span class="c-key">allow_failure</span>: <span class="c-val">true</span>  <span class="c-comment"># warn only, don't block</span>
+
+<span class="c-comment"># ── CONTAINER SCAN ─────────────────────────────────────────</span>
+<span class="c-key">snyk:container</span>:
+  <span class="c-key">stage</span>: <span class="c-val">build</span>
+  <span class="c-key">image</span>: <span class="c-val">docker:24</span>
+  <span class="c-key">services</span>:
+    - <span class="c-val">docker:24-dind</span>
+  <span class="c-key">before_script</span>:
+    - <span class="c-str">apk add --no-cache curl</span>
+    - <span class="c-str">curl -Lo /usr/local/bin/snyk https://static.snyk.io/cli/latest/snyk-linux</span>
+    - <span class="c-str">chmod +x /usr/local/bin/snyk</span>
+  <span class="c-key">script</span>:
+    - <span class="c-str">docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .</span>
+    - <span class="c-str">snyk container test $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --severity-threshold=high</span>
+  <span class="c-key">only</span>:
+    - <span class="c-val">main</span>
+
+<span class="c-comment"># ── IaC SCAN ──────────────────────────────────────────────</span>
+<span class="c-key">snyk:iac</span>:
+  <span class="c-key">stage</span>: <span class="c-val">security</span>
+  <span class="c-key">image</span>: <span class="c-val">snyk/snyk:linux</span>
+  <span class="c-key">script</span>:
+    - <span class="c-str">snyk iac test --severity-threshold=medium</span>
+  <span class="c-key">allow_failure</span>: <span class="c-val">true</span></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 10: GITHUB ACTIONS ══════════════════════ -->
+      <div class="section" id="github">
+        <div class="section-header">
+          <span class="section-num">10</span>
+          <h2>GitHub Actions Integration</h2>
+        </div>
+
+        <p>Store <code style="color:var(--snyk2);font-family:var(--mono)">SNYK_TOKEN</code> in <strong>Settings → Secrets and variables → Actions</strong>.</p>
+
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">.GITHUB/WORKFLOWS/SNYK.YML</span></div>
+          <div class="code-body"><span class="c-key">name</span>: <span class="c-val">Snyk Security Scan</span>
+
+<span class="c-key">on</span>:
+  <span class="c-key">push</span>:
+    <span class="c-key">branches</span>: [main, develop]
+  <span class="c-key">pull_request</span>:
+    <span class="c-key">branches</span>: [main]
+  <span class="c-key">schedule</span>:
+    - <span class="c-key">cron</span>: <span class="c-str">'0 2 * * 1'</span>   <span class="c-comment"># weekly Monday 2AM</span>
+
+<span class="c-key">jobs</span>:
+  <span class="c-key">snyk</span>:
+    <span class="c-key">runs-on</span>: <span class="c-val">ubuntu-latest</span>
+    <span class="c-key">permissions</span>:
+      <span class="c-key">security-events</span>: <span class="c-val">write</span>   <span class="c-comment"># for GHAS upload</span>
+      <span class="c-key">contents</span>: <span class="c-val">read</span>
+
+    <span class="c-key">steps</span>:
+      - <span class="c-key">uses</span>: <span class="c-val">actions/checkout@v4</span>
+
+      - <span class="c-key">name</span>: <span class="c-val">Setup Node</span>
+        <span class="c-key">uses</span>: <span class="c-val">actions/setup-node@v4</span>
+        <span class="c-key">with</span>:
+          <span class="c-key">node-version</span>: <span class="c-str">'20'</span>
+
+      - <span class="c-key">name</span>: <span class="c-val">Install dependencies</span>
+        <span class="c-key">run</span>: <span class="c-val">npm ci</span>
+
+      <span class="c-comment"># ── Using the official Snyk action ──────────────────────</span>
+      - <span class="c-key">name</span>: <span class="c-val">Snyk Open Source</span>
+        <span class="c-key">uses</span>: <span class="c-val">snyk/actions/node@master</span>
+        <span class="c-key">env</span>:
+          <span class="c-val">SNYK_TOKEN</span>: <span class="c-str">${{ secrets.SNYK_TOKEN }}</span>
+        <span class="c-key">with</span>:
+          <span class="c-key">args</span>: <span class="c-str">--severity-threshold=high --sarif-file-output=snyk.sarif</span>
+
+      <span class="c-comment"># Upload to GitHub Advanced Security (GHAS)</span>
+      - <span class="c-key">name</span>: <span class="c-val">Upload SARIF to GitHub</span>
+        <span class="c-key">uses</span>: <span class="c-val">github/codeql-action/upload-sarif@v3</span>
+        <span class="c-key">if</span>: <span class="c-str">always()</span>
+        <span class="c-key">with</span>:
+          <span class="c-key">sarif_file</span>: <span class="c-val">snyk.sarif</span>
+
+      <span class="c-comment"># ── Snyk Code (SAST) ────────────────────────────────────</span>
+      - <span class="c-key">name</span>: <span class="c-val">Snyk Code</span>
+        <span class="c-key">uses</span>: <span class="c-val">snyk/actions/node@master</span>
+        <span class="c-key">env</span>:
+          <span class="c-val">SNYK_TOKEN</span>: <span class="c-str">${{ secrets.SNYK_TOKEN }}</span>
+        <span class="c-key">with</span>:
+          <span class="c-key">command</span>: <span class="c-val">code test</span>
+        <span class="c-key">continue-on-error</span>: <span class="c-val">true</span>
+
+      <span class="c-comment"># ── Container scan ──────────────────────────────────────</span>
+      - <span class="c-key">name</span>: <span class="c-val">Build Docker image</span>
+        <span class="c-key">run</span>: <span class="c-val">docker build -t myapp:${{ github.sha }} .</span>
+
+      - <span class="c-key">name</span>: <span class="c-val">Snyk Container</span>
+        <span class="c-key">uses</span>: <span class="c-val">snyk/actions/docker@master</span>
+        <span class="c-key">env</span>:
+          <span class="c-val">SNYK_TOKEN</span>: <span class="c-str">${{ secrets.SNYK_TOKEN }}</span>
+        <span class="c-key">with</span>:
+          <span class="c-key">image</span>: <span class="c-str">myapp:${{ github.sha }}</span>
+          <span class="c-key">args</span>: <span class="c-str">--severity-threshold=high</span></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 11: JENKINS ══════════════════════ -->
+      <div class="section" id="jenkins">
+        <div class="section-header">
+          <span class="section-num">11</span>
+          <h2>Jenkins Integration</h2>
+        </div>
+
+        <p>Store the Snyk token as a <strong>Jenkins Credential</strong> (Secret Text, ID: <code style="color:var(--snyk2);font-family:var(--mono)">snyk-api-token</code>). Use the Snyk Security Scanner plugin OR the CLI directly.</p>
+
+        <h3>// Declarative Pipeline (Jenkinsfile)</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">JENKINSFILE (GROOVY)</span></div>
+          <div class="code-body"><span class="c-kw">pipeline</span> {
+  <span class="c-kw">agent</span> { docker { image <span class="c-str">'node:20-alpine'</span> } }
+
+  <span class="c-key">environment</span> {
+    <span class="c-val">SNYK_TOKEN</span> = credentials(<span class="c-str">'snyk-api-token'</span>)
+  }
+
+  <span class="c-kw">stages</span> {
+    <span class="c-kw">stage</span>(<span class="c-str">'Install'</span>) {
+      <span class="c-kw">steps</span> {
+        sh <span class="c-str">'npm ci'</span>
+        sh <span class="c-str">'npm install -g snyk'</span>
+      }
+    }
+
+    <span class="c-kw">stage</span>(<span class="c-str">'Snyk Security Scan'</span>) {
+      <span class="c-kw">steps</span> {
+        <span class="c-kw">script</span> {
+          <span class="c-kw">try</span> {
+            sh <span class="c-str">'''
+              snyk test \
+                --severity-threshold=high \
+                --json > snyk-report.json
+            '''</span>
+          } <span class="c-kw">catch</span> (err) {
+            <span class="c-comment">// Capture failure but archive report first</span>
+            currentBuild.result = <span class="c-str">'UNSTABLE'</span>
+          }
+        }
+      }
+      <span class="c-kw">post</span> {
+        <span class="c-kw">always</span> {
+          archiveArtifacts <span class="c-val">artifacts</span>: <span class="c-str">'snyk-report.json'</span>
+        }
+      }
+    }
+
+    <span class="c-kw">stage</span>(<span class="c-str">'Snyk Monitor'</span>) {
+      <span class="c-kw">when</span> { branch <span class="c-str">'main'</span> }
+      <span class="c-kw">steps</span> {
+        sh <span class="c-str">'snyk monitor --project-name=my-app'</span>
+      }
+    }
+
+    <span class="c-kw">stage</span>(<span class="c-str">'Container Scan'</span>) {
+      <span class="c-kw">steps</span> {
+        sh <span class="c-str">'docker build -t myapp:${BUILD_NUMBER} .'</span>
+        sh <span class="c-str">'snyk container test myapp:${BUILD_NUMBER} --severity-threshold=high'</span>
+      }
+    }
+  }
+
+  <span class="c-kw">post</span> {
+    <span class="c-kw">failure</span> {
+      slackSend channel: <span class="c-str">'#security'</span>, message: <span class="c-str">"Snyk found vulnerabilities in ${env.JOB_NAME}"</span>
+    }
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 12: KUBERNETES ══════════════════════ -->
+      <div class="section" id="k8s">
+        <div class="section-header">
+          <span class="section-num">12</span>
+          <h2>Kubernetes Integration</h2>
+        </div>
+
+        <div class="tabs">
+          <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab(this,'k8s','iac')">IaC Scan</button>
+            <button class="tab-btn" onclick="switchTab(this,'k8s','controller')">Snyk Controller</button>
+            <button class="tab-btn" onclick="switchTab(this,'k8s','job')">K8s Job</button>
+          </div>
+
+          <div class="tab-panel active" id="k8s-iac">
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH — Scan K8s manifests</span></div>
+              <div class="code-body"><span class="c-comment"># Scan a specific manifest</span>
+<span class="c-cmd">snyk iac test</span> <span class="c-val">k8s/deployment.yaml</span>
+
+<span class="c-comment"># Scan entire k8s/ directory</span>
+<span class="c-cmd">snyk iac test</span> <span class="c-val">k8s/</span> <span class="c-flag">--severity-threshold=medium</span>
+
+<span class="c-comment"># Generate SARIF output for IDE/GHAS</span>
+<span class="c-cmd">snyk iac test</span> <span class="c-val">k8s/</span> <span class="c-flag">--sarif</span> <span class="c-flag">&gt;</span> iac-results.sarif</div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="k8s-controller">
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH — Snyk Controller (runtime monitoring)</span></div>
+              <div class="code-body"><span class="c-comment"># Install Snyk Controller via Helm</span>
+<span class="c-cmd">helm repo add</span> <span class="c-val">snyk-charts https://snyk.github.io/kubernetes-monitor/</span>
+<span class="c-cmd">helm repo update</span>
+
+<span class="c-comment"># Create namespace and secret</span>
+<span class="c-cmd">kubectl create namespace</span> <span class="c-val">snyk-monitor</span>
+<span class="c-cmd">kubectl create secret generic</span> <span class="c-val">snyk-monitor-secret</span> \
+  <span class="c-flag">--from-literal=dockerconfigjson.json={}</span> \
+  <span class="c-flag">--from-literal=integrationId=</span><span class="c-val">YOUR_INTEGRATION_ID</span> \
+  <span class="c-flag">-n</span> <span class="c-val">snyk-monitor</span>
+
+<span class="c-comment"># Deploy Snyk Controller</span>
+<span class="c-cmd">helm install</span> <span class="c-val">snyk-monitor snyk-charts/snyk-monitor</span> \
+  <span class="c-flag">--namespace</span> <span class="c-val">snyk-monitor</span> \
+  <span class="c-flag">--set</span> <span class="c-val">clusterName=production-cluster</span></div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="k8s-job">
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">KUBERNETES JOB MANIFEST</span></div>
+              <div class="code-body"><span class="c-key">apiVersion</span>: <span class="c-val">batch/v1</span>
+<span class="c-key">kind</span>: <span class="c-val">Job</span>
+<span class="c-key">metadata</span>:
+  <span class="c-key">name</span>: <span class="c-val">snyk-scan</span>
+<span class="c-key">spec</span>:
+  <span class="c-key">template</span>:
+    <span class="c-key">spec</span>:
+      <span class="c-key">containers</span>:
+      - <span class="c-key">name</span>: <span class="c-val">snyk</span>
+        <span class="c-key">image</span>: <span class="c-val">snyk/snyk:linux</span>
+        <span class="c-key">command</span>: [<span class="c-str">"snyk"</span>, <span class="c-str">"test"</span>, <span class="c-str">"--severity-threshold=high"</span>]
+        <span class="c-key">env</span>:
+        - <span class="c-key">name</span>: <span class="c-val">SNYK_TOKEN</span>
+          <span class="c-key">valueFrom</span>:
+            <span class="c-key">secretKeyRef</span>:
+              <span class="c-key">name</span>: <span class="c-val">snyk-credentials</span>
+              <span class="c-key">key</span>: <span class="c-val">token</span>
+        <span class="c-key">volumeMounts</span>:
+        - <span class="c-key">mountPath</span>: <span class="c-val">/project</span>
+          <span class="c-key">name</span>: <span class="c-val">source-code</span>
+      <span class="c-key">volumes</span>:
+      - <span class="c-key">name</span>: <span class="c-val">source-code</span>
+        <span class="c-key">configMap</span>:
+          <span class="c-key">name</span>: <span class="c-val">app-source</span>
+      <span class="c-key">restartPolicy</span>: <span class="c-val">Never</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 13: CONFIG ══════════════════════ -->
+      <div class="section" id="config">
+        <div class="section-header">
+          <span class="section-num">13</span>
+          <h2>.snyk Policy File & Configuration</h2>
+        </div>
+
+        <p>The <code style="color:var(--snyk2);font-family:var(--mono)">.snyk</code> file (lives in your project root) is the primary configuration file. It controls ignore rules, patches, and language settings.</p>
+
+        <h3>// Full .snyk file anatomy</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">.SNYK (YAML)</span></div>
+          <div class="code-body"><span class="c-comment"># Snyk policy file</span>
+<span class="c-key">version</span>: <span class="c-val">v1.25.1</span>
+
+<span class="c-comment"># ── IGNORE RULES ──────────────────────────────────────────</span>
+<span class="c-key">ignore</span>:
+  <span class="c-comment"># Ignore a specific CVE in a specific package</span>
+  <span class="c-val">SNYK-JS-LODASH-567746</span>:
+    - <span class="c-str">'* > lodash'</span>:
+        <span class="c-key">reason</span>: <span class="c-str">'Not exploitable in our usage pattern'</span>
+        <span class="c-key">expires</span>: <span class="c-str">'2025-12-31T00:00:00.000Z'</span>  <span class="c-comment"># auto-expires</span>
+        <span class="c-key">created</span>: <span class="c-str">'2024-01-15T00:00:00.000Z'</span>
+
+  <span class="c-comment"># Ignore across all paths (use sparingly)</span>
+  <span class="c-val">SNYK-JS-AXIOS-1038255</span>:
+    - <span class="c-str">'*'</span>:
+        <span class="c-key">reason</span>: <span class="c-str">'Tracked in JIRA-1234, fix scheduled for Q2'</span>
+        <span class="c-key">expires</span>: <span class="c-str">'2025-06-01T00:00:00.000Z'</span>
+
+<span class="c-comment"># ── PATCHES (Snyk-provided backport patches) ──────────────</span>
+<span class="c-key">patch</span>:
+  <span class="c-val">SNYK-JS-UGLIFYJS-10179</span>:
+    - <span class="c-str">'uglify-js > source-map'</span>:
+        <span class="c-key">patched</span>: <span class="c-str">'2024-01-10T00:00:00.000Z'</span>
+
+<span class="c-comment"># ── LANGUAGE SETTINGS ────────────────────────────────────</span>
+<span class="c-key">language-settings</span>:
+  <span class="c-key">javascript</span>:
+    <span class="c-key">packageManager</span>: <span class="c-val">npm</span>    <span class="c-comment"># npm | yarn | pnpm</span></div>
+        </div>
+
+        <h3>// .snykrc (global CLI config)</h3>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">.SNYKRC (INI)</span></div>
+          <div class="code-body"><span class="c-comment"># ~/.config/configstore/snyk.json or use CLI config commands</span>
+
+<span class="c-comment"># Set org (override per-command with --org flag)</span>
+<span class="c-cmd">snyk config set</span> <span class="c-val">org=my-org-slug</span>
+
+<span class="c-comment"># Set API endpoint (for self-hosted Snyk)</span>
+<span class="c-cmd">snyk config set</span> <span class="c-val">endpoint=https://app.snyk.io/api</span>
+
+<span class="c-comment"># Disable telemetry</span>
+<span class="c-cmd">snyk config set</span> <span class="c-val">disable-analytics=1</span>
+
+<span class="c-comment"># View current config</span>
+<span class="c-cmd">snyk config get</span> <span class="c-val">org</span></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 14: FLAGS ══════════════════════ -->
+      <div class="section" id="flags">
+        <div class="section-header">
+          <span class="section-num">14</span>
+          <h2>CLI Flags Complete Reference</h2>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Flag</th><th>Command</th><th>Purpose</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code style="color:var(--snyk2)">--severity-threshold</code></td><td>test, container, iac</td><td>Fail only at or above this level</td><td><code>--severity-threshold=high</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--json</code></td><td>all</td><td>Machine-readable JSON output</td><td><code>snyk test --json</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--sarif</code></td><td>test, code, iac</td><td>SARIF output for GHAS / IDEs</td><td><code>--sarif > results.sarif</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--all-projects</code></td><td>test, monitor</td><td>Scan all projects in monorepo</td><td><code>snyk test --all-projects</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--org</code></td><td>all</td><td>Override Snyk organization</td><td><code>--org=my-org-id</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--project-name</code></td><td>monitor</td><td>Name project in dashboard</td><td><code>--project-name=api-service</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--file</code></td><td>test, monitor</td><td>Specify manifest file</td><td><code>--file=package.json</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--exclude-base-image-vulns</code></td><td>container</td><td>Skip OS layer, show app vulns only</td><td><code>snyk container test img --exclude-base-image-vulns</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--target-reference</code></td><td>monitor</td><td>Tag snapshot by branch/version</td><td><code>--target-reference=main</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--tags</code></td><td>monitor</td><td>Add key=value tags to project</td><td><code>--tags=env=prod,team=platform</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--policy-path</code></td><td>test</td><td>Custom .snyk policy file location</td><td><code>--policy-path=./security/.snyk</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--fail-on</code></td><td>test</td><td>When to fail: all | upgradable | patchable</td><td><code>--fail-on=upgradable</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--show-vulnerable-paths</code></td><td>test</td><td>Dep chain display: none|some|all</td><td><code>--show-vulnerable-paths=all</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--trust-policies</code></td><td>test</td><td>Apply upstream policy files</td><td><code>--trust-policies</code></td></tr>
+              <tr><td><code style="color:var(--snyk2)">--prune-repeated-subdependencies</code></td><td>test</td><td>Reduce output noise in large trees</td><td><code>-p</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 15: IaC ══════════════════════ -->
+      <div class="section" id="iac">
+        <div class="section-header">
+          <span class="section-num">15</span>
+          <h2>IaC Scanning Deep-Dive</h2>
+        </div>
+
+        <p>Snyk IaC detects misconfigurations before infrastructure is provisioned. It supports <strong>Terraform, CloudFormation, Kubernetes YAML, Helm, Azure ARM, and Ansible</strong>.</p>
+
+        <div class="card-grid">
+          <div class="card blue">
+            <div class="card-icon">🏗️</div>
+            <h4>Terraform</h4>
+            <p>.tf files, variables, modules — S3 public buckets, unencrypted RDS, open security groups.</p>
+          </div>
+          <div class="card orange">
+            <div class="card-icon">☸️</div>
+            <h4>Kubernetes</h4>
+            <p>privileged containers, missing resource limits, missing network policies, root users.</p>
+          </div>
+          <div class="card green">
+            <div class="card-icon">🌩️</div>
+            <h4>CloudFormation</h4>
+            <p>IAM wildcards, public S3, unencrypted EBS, missing CloudTrail logging.</p>
+          </div>
+          <div class="card purple">
+            <div class="card-icon">⛵</div>
+            <h4>Helm</h4>
+            <p>Scans rendered Helm templates — snyk iac test with --helm-chart-path.</p>
+          </div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH — IaC examples</span></div>
+          <div class="code-body"><span class="c-comment"># Terraform — scan plan or .tf files</span>
+<span class="c-cmd">terraform plan</span> <span class="c-flag">-out</span>=<span class="c-val">tfplan.binary</span>
+<span class="c-cmd">terraform show</span> <span class="c-flag">-json</span> tfplan.binary <span class="c-flag">&gt;</span> tfplan.json
+<span class="c-cmd">snyk iac test</span> <span class="c-val">tfplan.json</span>
+
+<span class="c-comment"># Or scan .tf files directly</span>
+<span class="c-cmd">snyk iac test</span> <span class="c-val">infrastructure/</span>
+
+<span class="c-comment"># Helm chart scan</span>
+<span class="c-cmd">helm template</span> <span class="c-val">my-release ./helm-chart</span> <span class="c-flag">&gt;</span> rendered.yaml
+<span class="c-cmd">snyk iac test</span> <span class="c-val">rendered.yaml</span>
+
+<span class="c-comment"># Custom rules (OPA/Rego policies)</span>
+<span class="c-cmd">snyk iac test</span> <span class="c-flag">--rules=./custom-rules.tar.gz</span></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 16: API ══════════════════════ -->
+      <div class="section" id="api">
+        <div class="section-header">
+          <span class="section-num">16</span>
+          <h2>Snyk REST API (Expert Level)</h2>
+        </div>
+
+        <p>For automation beyond the CLI — bulk reporting, JIRA integration, custom dashboards — use the <strong>Snyk REST API v1</strong> (and the newer v3).</p>
+
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div><span class="code-lang">BASH — REST API</span></div>
+          <div class="code-body"><span class="c-key">BASE</span>=<span class="c-str">"https://api.snyk.io/v1"</span>
+<span class="c-key">TOKEN</span>=<span class="c-str">"$SNYK_TOKEN"</span>
+
+<span class="c-comment"># List all organizations</span>
+<span class="c-cmd">curl</span> <span class="c-flag">-H</span> <span class="c-str">"Authorization: token $TOKEN"</span> \
+  $BASE/orgs
+
+<span class="c-comment"># List all projects in an org</span>
+<span class="c-cmd">curl</span> <span class="c-flag">-H</span> <span class="c-str">"Authorization: token $TOKEN"</span> \
+  $BASE/org/<span class="c-val">ORG_ID</span>/projects
+
+<span class="c-comment"># Get issues for a project</span>
+<span class="c-cmd">curl</span> <span class="c-flag">-H</span> <span class="c-str">"Authorization: token $TOKEN"</span> \
+  $BASE/org/<span class="c-val">ORG_ID</span>/project/<span class="c-val">PROJECT_ID</span>/issues
+
+<span class="c-comment"># Trigger a test via API</span>
+<span class="c-cmd">curl</span> <span class="c-flag">-X POST</span> \
+  <span class="c-flag">-H</span> <span class="c-str">"Authorization: token $TOKEN"</span> \
+  <span class="c-flag">-H</span> <span class="c-str">"Content-Type: application/json"</span> \
+  <span class="c-flag">-d</span> <span class="c-str">'{"packageManager":"npm","encodingType":"plain","projectName":"my-app"}'</span> \
+  $BASE/test/npm
+
+<span class="c-comment"># Create ignore via API (batch ignore from scripts)</span>
+<span class="c-cmd">curl</span> <span class="c-flag">-X POST</span> \
+  <span class="c-flag">-H</span> <span class="c-str">"Authorization: token $TOKEN"</span> \
+  <span class="c-flag">-H</span> <span class="c-str">"Content-Type: application/json"</span> \
+  <span class="c-flag">-d</span> <span class="c-str">'{"ignorePath":"*","reason":"False positive","disregardIfFixable":false}'</span> \
+  $BASE/org/<span class="c-val">ORG_ID</span>/project/<span class="c-val">PROJECT_ID</span>/ignore/<span class="c-val">ISSUE_ID</span></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 17: BEST PRACTICES ══════════════════════ -->
+      <div class="section" id="best">
+        <div class="section-header">
+          <span class="section-num">17</span>
+          <h2>Best Practices — Enterprise Setup</h2>
+        </div>
+
+        <div class="card-grid">
+          <div class="card green">
+            <div class="card-icon">🎯</div>
+            <h4>Gate on HIGH+ only</h4>
+            <p>Use <code>--severity-threshold=high</code> in CI. Track LOW/MEDIUM separately. Avoid alert fatigue that leads teams to ignore all security output.</p>
+          </div>
+          <div class="card blue">
+            <div class="card-icon">📅</div>
+            <h4>Always set expiry on ignores</h4>
+            <p>Every ignore rule in .snyk MUST have an <code>expires</code> date. This forces periodic review instead of silent permanent suppression.</p>
+          </div>
+          <div class="card purple">
+            <div class="card-icon">🔄</div>
+            <h4>snyk monitor on main only</h4>
+            <p>Run <code>snyk test</code> on every branch/PR, but run <code>snyk monitor</code> only on merges to main to keep dashboard clean.</p>
+          </div>
+          <div class="card orange">
+            <div class="card-icon">🏷️</div>
+            <h4>Tag projects consistently</h4>
+            <p>Use <code>--tags=team=payments,env=prod</code> to enable filtered reporting and ownership assignment in the Snyk dashboard.</p>
+          </div>
+          <div class="card red">
+            <div class="card-icon">🔐</div>
+            <h4>Rotate service account tokens</h4>
+            <p>Create separate Snyk service accounts per environment (dev/staging/prod). Rotate tokens quarterly via your secrets management system.</p>
+          </div>
+          <div class="card blue">
+            <div class="card-icon">📊</div>
+            <h4>Automate JIRA ticket creation</h4>
+            <p>Use Snyk's JIRA integration or the API to auto-create tickets for new HIGH+ findings, assigned to the owning team.</p>
+          </div>
+        </div>
+
+        <h3>// Recommended workflow per environment</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Stage</th><th>Command</th><th>Threshold</th><th>On Failure</th><th>Plan</th></tr></thead>
+            <tbody>
+              <tr><td>IDE (developer)</td><td>Snyk IDE plugin</td><td>All severities shown</td><td>Warning only</td><td><span class="badge free">FREE</span></td></tr>
+              <tr><td>PR / Merge Request</td><td>snyk test</td><td>HIGH+</td><td>Block merge</td><td><span class="badge free">FREE</span></td></tr>
+              <tr><td>Main branch CI</td><td>snyk test + snyk monitor</td><td>HIGH+</td><td>Fail build</td><td><span class="badge free">FREE</span></td></tr>
+              <tr><td>Container registry</td><td>snyk container test</td><td>HIGH+</td><td>Block push</td><td><span class="badge team">TEAM</span></td></tr>
+              <tr><td>Production deploy</td><td>snyk monitor</td><td>Monitoring only</td><td>Slack alert</td><td><span class="badge paid">ENTERPRISE</span></td></tr>
+              <tr><td>Scheduled (weekly)</td><td>snyk test --all-projects</td><td>MEDIUM+</td><td>JIRA ticket</td><td><span class="badge team">TEAM</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ SECTION 18: COMPARE ══════════════════════ -->
+      <div class="section" id="compare">
+        <div class="section-header">
+          <span class="section-num">18</span>
+          <h2>Environment Comparison — Which Setup is Best?</h2>
+        </div>
+
+        <div class="compare-grid">
+          <div class="compare-card">
+            <div class="compare-head" style="background:rgba(76,155,232,0.08);border-bottom:1px solid var(--border)">
+              <span style="color:var(--snyk2)">⚡</span> GitHub Actions
+            </div>
+            <div class="compare-body">
+              <div class="compare-row"><span>Setup effort</span><span style="color:var(--green)">Low</span></div>
+              <div class="compare-row"><span>Native SARIF</span><span style="color:var(--green)">Yes (GHAS)</span></div>
+              <div class="compare-row"><span>PR blocking</span><span style="color:var(--green)">Native</span></div>
+              <div class="compare-row"><span>Best for</span><span style="color:var(--snyk2)">GitHub teams</span></div>
+            </div>
+          </div>
+          <div class="compare-card">
+            <div class="compare-head" style="background:rgba(181,123,238,0.08);border-bottom:1px solid var(--border)">
+              <span style="color:var(--purple)">🦊</span> GitLab CI
+            </div>
+            <div class="compare-body">
+              <div class="compare-row"><span>Setup effort</span><span style="color:var(--green)">Low</span></div>
+              <div class="compare-row"><span>Security Dashboard</span><span style="color:var(--green)">Yes (native)</span></div>
+              <div class="compare-row"><span>Self-hosted</span><span style="color:var(--green)">Excellent</span></div>
+              <div class="compare-row"><span>Best for</span><span style="color:var(--purple)">GitLab self-managed</span></div>
+            </div>
+          </div>
+          <div class="compare-card">
+            <div class="compare-head" style="background:rgba(240,145,77,0.08);border-bottom:1px solid var(--border)">
+              <span style="color:var(--orange)">🏗️</span> AWS CodeBuild
+            </div>
+            <div class="compare-body">
+              <div class="compare-row"><span>Setup effort</span><span style="color:var(--yellow)">Medium</span></div>
+              <div class="compare-row"><span>AWS native secrets</span><span style="color:var(--green)">SSM / SM</span></div>
+              <div class="compare-row"><span>AWS integration</span><span style="color:var(--green)">Excellent</span></div>
+              <div class="compare-row"><span>Best for</span><span style="color:var(--orange)">AWS-native teams</span></div>
+            </div>
+          </div>
+          <div class="compare-card">
+            <div class="compare-head" style="background:rgba(57,217,138,0.08);border-bottom:1px solid var(--border)">
+              <span style="color:var(--green)">⚙️</span> Jenkins
+            </div>
+            <div class="compare-body">
+              <div class="compare-row"><span>Setup effort</span><span style="color:var(--red)">High</span></div>
+              <div class="compare-row"><span>Plugin available</span><span style="color:var(--green)">Yes</span></div>
+              <div class="compare-row"><span>On-prem friendly</span><span style="color:var(--green)">Best</span></div>
+              <div class="compare-row"><span>Best for</span><span style="color:var(--green)">Enterprise on-prem</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert tip">
+          <span class="alert-icon">💡</span>
+          <div class="alert-body"><strong>Rule of thumb:</strong> Use the Snyk native action/template for your CI platform when available. Fall back to <code>snyk/snyk:linux</code> Docker image for any platform — it's always portable and version-pinnable.</div>
+        </div>
+
+        <hr>
+
+        <h3>// Plan feature matrix</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Feature</th><th><span class="badge free">FREE</span></th><th><span class="badge team">TEAM</span></th><th><span class="badge paid">ENTERPRISE</span></th></tr></thead>
+            <tbody>
+              <tr><td>Open Source SCA</td><td>✅ 200 tests/mo</td><td>✅ Unlimited</td><td>✅ Unlimited</td></tr>
+              <tr><td>Snyk Code (SAST)</td><td>✅ Limited</td><td>✅ Full</td><td>✅ Full</td></tr>
+              <tr><td>Container Scanning</td><td>✅ 100 tests/mo</td><td>✅ Unlimited</td><td>✅ Unlimited</td></tr>
+              <tr><td>IaC Scanning</td><td>✅ 300 tests/mo</td><td>✅ Unlimited</td><td>✅ Unlimited</td></tr>
+              <tr><td>Priority Score</td><td>❌</td><td>✅</td><td>✅</td></tr>
+              <tr><td>Custom rules</td><td>❌</td><td>❌</td><td>✅</td></tr>
+              <tr><td>SSO / SAML</td><td>❌</td><td>❌</td><td>✅</td></tr>
+              <tr><td>Snyk Learn</td><td>✅</td><td>✅</td><td>✅</td></tr>
+              <tr><td>JIRA integration</td><td>❌</td><td>✅</td><td>✅</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div style="border-top:1px solid var(--border);padding-top:2rem;margin-top:2rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);text-align:center;">
+        <p>Snyk Complete Reference Guide · Beginner → Expert · Claude AI · 2025</p>
+        <p style="margin-top:0.3rem;">docs.snyk.io · snyk.io/vuln · github.com/snyk</p>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+  function scrollTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event.target.closest('.nav-item')?.classList.add('active');
+  }
+
+  function switchTab(btn, group, id) {
+    const nav = btn.closest('.tab-nav');
+    nav.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const panels = btn.closest('.tabs').querySelectorAll('.tab-panel');
+    panels.forEach(p => p.classList.remove('active'));
+    document.getElementById(group + '-' + id)?.classList.add('active');
+  }
+
+  // Active nav on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        document.querySelectorAll('.nav-item').forEach(el => {
+          el.classList.toggle('active', el.getAttribute('onclick')?.includes(`'${id}'`));
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.section[id]').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
